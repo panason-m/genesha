@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Web.WebView2.Core;
+using Windows.Storage;
 using Genesha.Helpers;
 using Genesha.Services;
 
@@ -86,10 +87,18 @@ public sealed partial class WhiteboardEditorPage : Page
                 var pngRequestId = envelope.Payload.GetProperty("requestId").GetString()!;
                 try
                 {
+                    var suggestedName = ExportNaming.BuildSuggestedFileName(BoardNameText.Text, "png");
+                    var file = await FilePickers.PickSaveFileAsync(suggestedName, ".png", "PNG Image", "GeneshaExportWhiteboardPng");
+                    if (file is null)
+                    {
+                        PostResult(sender, "exportGroupPngResult", pngRequestId, ok: false, error: "cancelled");
+                        break;
+                    }
+
                     var pngBytes = Convert.FromBase64String(envelope.Payload.GetProperty("pngBase64").GetString()!);
-                    var fileName = await _whiteboardService.ExportGroupPngAsync(BoardNameText.Text, pngBytes);
-                    PostResult(sender, "exportGroupPngResult", pngRequestId, ok: true, fileName: fileName);
-                    ExportStatusText.Text = $"Exported PNG: {fileName}";
+                    await FileIO.WriteBytesAsync(file, pngBytes);
+                    PostResult(sender, "exportGroupPngResult", pngRequestId, ok: true, fileName: file.Name);
+                    ExportStatusText.Text = $"Exported PNG: {file.Name}";
                 }
                 catch (Exception ex)
                 {

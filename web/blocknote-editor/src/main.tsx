@@ -13,11 +13,15 @@ function Editor() {
 
   useEffect(() => {
     onNativeMessage(async (message) => {
-      if (message.type !== "loadContent") return;
-      loadingRef.current = true;
-      const blocks = await editor.tryParseMarkdownToBlocks(message.payload.markdown ?? "");
-      editor.replaceBlocks(editor.document, blocks);
-      loadingRef.current = false;
+      if (message.type === "loadContent") {
+        loadingRef.current = true;
+        const blocks = await editor.tryParseMarkdownToBlocks(message.payload.markdown ?? "");
+        editor.replaceBlocks(editor.document, blocks);
+        loadingRef.current = false;
+      } else if (message.type === "requestPrintHtml") {
+        const html = await editor.blocksToHTMLLossy(editor.document);
+        postToNative({ type: "printHtml", payload: { requestId: message.payload.requestId, html } });
+      }
     });
 
     postToNative({ type: "ready", payload: {} });

@@ -12,11 +12,11 @@ function NativeExportResultToasts() {
     onNativeMessage((message) => {
       if (message.type === "exportGroupPngResult") {
         const { ok, fileName, error } = message.payload;
-        toasts.addToast(
-          ok
-            ? { severity: "success", title: "PNG exported", description: fileName }
-            : { severity: "error", title: "PNG export failed", description: error },
-        );
+        if (ok) {
+          toasts.addToast({ severity: "success", title: "PNG exported", description: fileName });
+        } else if (error !== "cancelled") {
+          toasts.addToast({ severity: "error", title: "PNG export failed", description: error });
+        }
       } else if (message.type === "exportFlowMermaidResult") {
         const { ok, fileName, error } = message.payload;
         toasts.addToast(

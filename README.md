@@ -7,7 +7,7 @@ folder on your own disk.
 ![Platform](https://img.shields.io/badge/platform-Windows-0078D6)
 ![.NET](https://img.shields.io/badge/.NET-8-512BD4)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Status](https://img.shields.io/badge/status-v1.0%20Beta-orange)
+![Status](https://img.shields.io/badge/status-v1.0.1%20Beta-orange)
 
 ## Screenshots
 
@@ -48,6 +48,9 @@ use. It is free to use, free to fork, and contributions are welcome.
 - **Mermaid Diagrams**: a text based diagram editor (flowcharts, sequence diagrams, and everything
   else Mermaid supports) with a live rendered preview. A whiteboard's shapes and connectors can
   also be exported straight into a new Mermaid diagram with one click
+- **Export**: notes to Markdown or a clean, print-styled PDF (not a screenshot of the editor);
+  Mermaid diagrams and whiteboard selections to PNG. Every export opens the native Save As
+  dialog, so you pick the file name and folder yourself each time
 - **Dashboard**: a per workspace landing page showing note/whiteboard counts and quick links
 - **User Manual**: in-app help, always reachable from the nav pane footer
 
@@ -157,6 +160,9 @@ Everything is stored locally, never sent anywhere:
 
 A workspace folder is self contained and portable. Copy or move it anywhere, then open it again
 via Open Existing Folder.
+
+Exported files (Markdown, PDF, PNG) are *not* part of the workspace: each export opens a native
+Save As dialog, so you choose where it goes, and it can live anywhere on disk.
 
 ## Letting your local AI agent recognize Genesha
 

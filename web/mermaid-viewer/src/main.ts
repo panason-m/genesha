@@ -15,6 +15,8 @@ const resetLayoutBtn = document.getElementById("reset-layout-btn") as HTMLButton
 const zoomInBtn = document.getElementById("zoom-in-btn") as HTMLButtonElement;
 const zoomOutBtn = document.getElementById("zoom-out-btn") as HTMLButtonElement;
 const zoomResetBtn = document.getElementById("zoom-reset-btn") as HTMLButtonElement;
+const exportPngBtn = document.getElementById("export-png-btn") as HTMLButtonElement;
+const exportStatusEl = document.getElementById("export-status") as HTMLSpanElement;
 
 // --- Diagram rendering --------------------------------------------------
 
@@ -165,6 +167,179 @@ onNativeMessage((message) => {
   if (message.type !== "getLayout") return;
   const svgEl = previewEl.querySelector("svg");
   if (svgEl) reportLayout(svgEl as unknown as SVGSVGElement);
+});
+
+// --- Export the rendered diagram as PNG ---------------------------------
+
+async function blobToBase64(blob: Blob): Promise<string> {
+  const buffer = await blob.arrayBuffer();
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary);
+}
+
+interface ForeignObjectLabel {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  text: string;
+  fontSize: string;
+  fontFamily: string;
+  color: string;
+}
+
+// Read plain text + computed style from each foreignObject in the *live* (attached, styled) SVG —
+// getComputedStyle only works on elements attached to the document, so this has to run before
+// the SVG is cloned. Order matches svgEl.querySelectorAll("foreignObject") 1:1 with the clone's,
+// since cloneNode(true) preserves document order exactly.
+function collectForeignObjectLabels(svgEl: SVGSVGElement): ForeignObjectLabel[] {
+  return Array.from(svgEl.querySelectorAll("foreignObject")).map((fo) => {
+    const foEl = fo as SVGForeignObjectElement;
+    const htmlRoot = foEl.firstElementChild as HTMLElement | null;
+    const computed = htmlRoot ? getComputedStyle(htmlRoot) : null;
+    return {
+      x: foEl.x.baseVal.value,
+      y: foEl.y.baseVal.value,
+      width: foEl.width.baseVal.value,
+      height: foEl.height.baseVal.value,
+      text: (foEl.textContent ?? "").replace(/\s+/g, " ").trim(),
+      fontSize: computed?.fontSize || "14px",
+      fontFamily: computed?.fontFamily || "trebuchet ms, verdana, arial, sans-serif",
+      color: computed?.color || "#000000",
+    };
+  });
+}
+
+function wrapTextToWidth(text: string, maxWidth: number, font: string): string[] {
+  if (!text) return [];
+  const ctx = document.createElement("canvas").getContext("2d")!;
+  ctx.font = font;
+
+  const lines: string[] = [];
+  let current = "";
+  for (const word of text.split(" ")) {
+    const candidate = current ? `${current} ${word}` : word;
+    if (current && ctx.measureText(candidate).width > maxWidth) {
+      lines.push(current);
+      current = word;
+    } else {
+      current = candidate;
+    }
+  }
+  if (current) lines.push(current);
+  return lines;
+}
+
+function replaceForeignObjectsWithText(clonedSvg: SVGSVGElement, labels: ForeignObjectLabel[]): void {
+  const foreignObjects = Array.from(clonedSvg.querySelectorAll("foreignObject"));
+  foreignObjects.forEach((fo, i) => {
+    const label = labels[i];
+    if (!label) {
+      fo.remove();
+      return;
+    }
+
+    const font = `${label.fontSize} ${label.fontFamily}`;
+    const lines = wrapTextToWidth(label.text, label.width, font);
+    const lineHeight = parseFloat(label.fontSize) * 1.25 || 16;
+
+    const textEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    textEl.setAttribute("text-anchor", "middle");
+    textEl.setAttribute("font-size", label.fontSize);
+    textEl.setAttribute("font-family", label.fontFamily);
+    textEl.setAttribute("fill", label.color);
+
+    const startY = label.y + label.height / 2 - ((lines.length - 1) * lineHeight) / 2 + lineHeight * 0.32;
+    lines.forEach((line, li) => {
+      const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+      tspan.setAttribute("x", String(label.x + label.width / 2));
+      tspan.setAttribute("y", String(startY + li * lineHeight));
+      tspan.textContent = line;
+      textEl.appendChild(tspan);
+    });
+
+    fo.replaceWith(textEl);
+  });
+}
+
+async function exportPreviewAsPng(): Promise<void> {
+  const svgEl = previewEl.querySelector("svg") as SVGSVGElement | null;
+  if (!svgEl) return;
+
+  exportPngBtn.disabled = true;
+  exportStatusEl.classList.remove("error");
+  exportStatusEl.textContent = "Exporting…";
+
+  // Mermaid renders node/edge labels as <foreignObject><div>…</div></foreignObject>. Chromium
+  // taints any canvas that ever drew an SVG containing a foreignObject (it can't statically prove
+  // the embedded HTML has no external references), which makes canvas.toBlob() throw. Since the
+  // labels are already read from computed styles here, replace them with plain SVG <text> in the
+  // exported copy only — the live, draggable preview keeps its HTML labels untouched.
+  const labels = collectForeignObjectLabels(svgEl);
+  const clonedSvg = svgEl.cloneNode(true) as SVGSVGElement;
+  replaceForeignObjectsWithText(clonedSvg, labels);
+
+  const width = svgEl.viewBox.baseVal.width || svgEl.clientWidth;
+  const height = svgEl.viewBox.baseVal.height || svgEl.clientHeight;
+  clonedSvg.setAttribute("width", String(width));
+  clonedSvg.setAttribute("height", String(height));
+
+  const svgString = new XMLSerializer().serializeToString(clonedSvg);
+  const svgUrl = URL.createObjectURL(new Blob([svgString], { type: "image/svg+xml;charset=utf-8" }));
+
+  try {
+    const img = new Image();
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error("Failed to rasterize diagram"));
+      img.src = svgUrl;
+    });
+
+    const scale = 2;
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.ceil(width * scale);
+    canvas.height = Math.ceil(height * scale);
+    const ctx = canvas.getContext("2d")!;
+    ctx.fillStyle = "#1e1e1e";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.scale(scale, scale);
+    ctx.drawImage(img, 0, 0, width, height);
+
+    const pngBlob: Blob = await new Promise((resolve, reject) =>
+      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("Failed to encode PNG"))), "image/png"),
+    );
+    const pngBase64 = await blobToBase64(pngBlob);
+
+    postToNative({
+      type: "exportPng",
+      payload: { requestId: crypto.randomUUID(), pngBase64, width: canvas.width, height: canvas.height },
+    });
+  } catch (err) {
+    exportPngBtn.disabled = false;
+    exportStatusEl.classList.add("error");
+    exportStatusEl.textContent = err instanceof Error ? err.message : String(err);
+  } finally {
+    URL.revokeObjectURL(svgUrl);
+  }
+}
+
+exportPngBtn.addEventListener("click", () => {
+  void exportPreviewAsPng();
+});
+
+onNativeMessage((message) => {
+  if (message.type !== "exportPngResult") return;
+  exportPngBtn.disabled = false;
+  const { ok, fileName, error } = message.payload;
+  if (!ok && error === "cancelled") {
+    exportStatusEl.classList.remove("error");
+    exportStatusEl.textContent = "";
+    return;
+  }
+  exportStatusEl.classList.toggle("error", !ok);
+  exportStatusEl.textContent = ok ? `Exported ${fileName}` : (error ?? "Export failed");
 });
 
 onNativeMessage((message) => {

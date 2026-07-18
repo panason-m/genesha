@@ -1,7 +1,9 @@
 export type BridgeMessage =
   | { type: "ready"; payload: Record<string, never> }
   | { type: "contentChanged"; payload: { markdown: string } }
-  | { type: "loadContent"; payload: { markdown: string } };
+  | { type: "loadContent"; payload: { markdown: string } }
+  | { type: "requestPrintHtml"; payload: { requestId: string } }
+  | { type: "printHtml"; payload: { requestId: string; html: string } };
 
 declare global {
   interface Window {

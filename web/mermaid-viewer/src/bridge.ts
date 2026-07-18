@@ -13,7 +13,9 @@ export type BridgeMessage =
   | { type: "contentChanged"; payload: { text: string } }
   | { type: "loadContent"; payload: { text: string } }
   | { type: "layout"; payload: { nodes: LayoutNode[] } }
-  | { type: "getLayout"; payload: Record<string, never> };
+  | { type: "getLayout"; payload: Record<string, never> }
+  | { type: "exportPng"; payload: { requestId: string; pngBase64: string; width: number; height: number } }
+  | { type: "exportPngResult"; payload: { requestId: string; ok: boolean; fileName?: string; error?: string } };
 
 declare global {
   interface Window {

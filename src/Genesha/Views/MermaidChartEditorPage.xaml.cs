@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Web.WebView2.Core;
 using Windows.ApplicationModel.DataTransfer;
+using Windows.Storage;
 using Genesha.Helpers;
 using Genesha.Services;
 
@@ -86,7 +87,37 @@ public sealed partial class MermaidChartEditorPage : Page
             case "layout":
                 _currentLayoutJson = envelope.Payload.GetProperty("nodes").GetRawText();
                 break;
+
+            case "exportPng":
+                var pngRequestId = envelope.Payload.GetProperty("requestId").GetString()!;
+                try
+                {
+                    var suggestedName = ExportNaming.BuildSuggestedFileName(ChartNameText.Text, "png");
+                    var file = await FilePickers.PickSaveFileAsync(suggestedName, ".png", "PNG Image", "GeneshaExportMermaidPng");
+                    if (file is null)
+                    {
+                        PostResult(sender, "exportPngResult", pngRequestId, ok: false, error: "cancelled");
+                        break;
+                    }
+
+                    var pngBytes = Convert.FromBase64String(envelope.Payload.GetProperty("pngBase64").GetString()!);
+                    await FileIO.WriteBytesAsync(file, pngBytes);
+                    PostResult(sender, "exportPngResult", pngRequestId, ok: true, fileName: file.Name);
+                    ExportStatusText.Text = $"Exported PNG: {file.Name}";
+                }
+                catch (Exception ex)
+                {
+                    PostResult(sender, "exportPngResult", pngRequestId, ok: false, error: ex.Message);
+                    ExportStatusText.Text = $"Export failed: {ex.Message}";
+                }
+                break;
         }
+    }
+
+    private static void PostResult(CoreWebView2 sender, string type, string requestId, bool ok, string? fileName = null, string? error = null)
+    {
+        var payload = JsonSerializer.Serialize(new { requestId, ok, fileName, error });
+        sender.PostWebMessageAsJson($"{{\"type\":\"{type}\",\"payload\":{payload}}}");
     }
 
     private void DebounceSave(string text)

@@ -102,31 +102,6 @@ public class WhiteboardService
         if (File.Exists(absolutePath)) File.Delete(absolutePath);
     }
 
-    public async Task<string> ExportGroupPngAsync(string boardName, byte[] pngBytes)
-    {
-        var exportsDir = Path.Combine(_currentWorkspace.RequireFolderPath(), "Exports");
-        Directory.CreateDirectory(exportsDir);
-
-        var baseFileName = $"{SanitizeFileNameComponent(boardName)}-{DateTime.Now:yyyyMMdd-HHmmss}";
-        var fileName = $"{baseFileName}.png";
-        var counter = 2;
-        while (File.Exists(Path.Combine(exportsDir, fileName)))
-        {
-            fileName = $"{baseFileName}-{counter}.png";
-            counter++;
-        }
-
-        await File.WriteAllBytesAsync(Path.Combine(exportsDir, fileName), pngBytes);
-        return fileName;
-    }
-
-    private static string SanitizeFileNameComponent(string value)
-    {
-        var invalid = Path.GetInvalidFileNameChars();
-        var sanitized = new string(value.Select(c => invalid.Contains(c) ? '_' : c).ToArray()).Trim();
-        return string.IsNullOrWhiteSpace(sanitized) ? "Whiteboard" : sanitized;
-    }
-
     private string ResolveAbsolutePath(string relativePath) =>
         Path.Combine(_currentWorkspace.RequireFolderPath(), relativePath);
 }

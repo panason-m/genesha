@@ -17,12 +17,15 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <TextBlock x:Name="ChartNameText" Grid.Column="0" FontWeight="SemiBold" VerticalAlignment="Center" />
             <Button Grid.Column="1" Content="Copy to Clipboard" Click="CopyButton_Click" />
             <Button Grid.Column="2" Content="Copy Layout JSON" Click="CopyLayoutButton_Click" Margin="8,0,0,0"
                     ToolTipService.ToolTip="Copies each rendered node/subgraph's id, label, and bounding box" />
-            <TextBlock x:Name="SaveStatusText" Grid.Column="3" FontSize="12" Margin="12,0,0,0"
+            <TextBlock x:Name="ExportStatusText" Grid.Column="3" FontSize="12" Margin="12,0,0,0"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" />
+            <TextBlock x:Name="SaveStatusText" Grid.Column="4" FontSize="12" Margin="12,0,0,0"
                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" />
         </Grid>
 
