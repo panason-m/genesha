@@ -1,0 +1,31 @@
+<Page
+    x:Class="Genesha.Views.MermaidChartEditorPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Padding="16,10" ColumnSpacing="8"
+              Background="{ThemeResource LayerFillColorDefaultBrush}"
+              BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+              BorderThickness="0,0,0,1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="ChartNameText" Grid.Column="0" FontWeight="SemiBold" VerticalAlignment="Center" />
+            <Button Grid.Column="1" Content="Copy to Clipboard" Click="CopyButton_Click" />
+            <Button Grid.Column="2" Content="Copy Layout JSON" Click="CopyLayoutButton_Click" Margin="8,0,0,0"
+                    ToolTipService.ToolTip="Copies each rendered node/subgraph's id, label, and bounding box" />
+            <TextBlock x:Name="SaveStatusText" Grid.Column="3" FontSize="12" Margin="12,0,0,0"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" />
+        </Grid>
+
+        <WebView2 x:Name="Editor" Grid.Row="1" />
+    </Grid>
+</Page>

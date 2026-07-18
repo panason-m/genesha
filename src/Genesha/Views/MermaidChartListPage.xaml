@@ -1,0 +1,52 @@
+<Page
+    x:Class="Genesha.Views.MermaidChartListPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:Genesha.ViewModels">
+    <Grid Padding="24" RowSpacing="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Mermaid Charts" FontSize="24" FontWeight="SemiBold" />
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">
+            <AutoSuggestBox x:Name="SearchBox" Width="260" PlaceholderText="Search Mermaid Charts…"
+                             QueryIcon="Find" TextChanged="SearchBox_TextChanged" />
+            <Button Content="New Mermaid Chart" Click="NewMermaidChartButton_Click" />
+        </StackPanel>
+
+        <Grid Grid.Row="2">
+            <TextBlock x:Name="EmptyStateText"
+                       Text="No Mermaid Charts yet. Create one, or export a flow group from a whiteboard."
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                       Visibility="Collapsed" />
+            <ListView x:Name="ChartsList"
+                      SelectionMode="None" IsItemClickEnabled="True"
+                      ItemClick="ChartsList_ItemClick">
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:MermaidChartListItemVm">
+                        <Grid Padding="12,10" ColumnSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Spacing="2">
+                                <TextBlock Text="{x:Bind Name}" FontWeight="SemiBold" />
+                                <TextBlock Text="{x:Bind SubtitleText}" FontSize="11"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </StackPanel>
+                            <Button Grid.Column="1" VerticalAlignment="Center" Background="Transparent" BorderThickness="0"
+                                    Tag="{x:Bind}" Click="ChartMenuButton_Click" ToolTipService.ToolTip="More options">
+                                <FontIcon Glyph="&#xE712;" FontSize="14" />
+                            </Button>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Grid>
+    </Grid>
+</Page>

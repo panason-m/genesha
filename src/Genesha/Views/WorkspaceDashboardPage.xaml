@@ -1,0 +1,57 @@
+<Page
+    x:Class="Genesha.Views.WorkspaceDashboardPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Padding="24" RowSpacing="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+            <TextBlock x:Name="WorkspaceNameText" FontSize="24" FontWeight="SemiBold" />
+            <Button Background="Transparent" BorderThickness="0" Padding="4"
+                    Click="CopyWorkspaceReference_Click" ToolTipService.ToolTip="Copy reference">
+                <FontIcon Glyph="&#xE8C8;" FontSize="14" />
+            </Button>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="16">
+            <Button Padding="0" Background="Transparent" BorderThickness="0" Click="NotesTile_Click">
+                <Border Background="{ThemeResource LayerFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                        BorderThickness="1" CornerRadius="8" Padding="16" MinWidth="160">
+                    <StackPanel Spacing="4">
+                        <TextBlock x:Name="NoteCountText" Text="0" FontSize="28" FontWeight="SemiBold" />
+                        <TextBlock Text="Notes" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
+                </Border>
+            </Button>
+            <Button Padding="0" Background="Transparent" BorderThickness="0" Click="WhiteboardsTile_Click">
+                <Border Background="{ThemeResource LayerFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                        BorderThickness="1" CornerRadius="8" Padding="16" MinWidth="160">
+                    <StackPanel Spacing="4">
+                        <TextBlock x:Name="WhiteboardCountText" Text="0" FontSize="28" FontWeight="SemiBold" />
+                        <TextBlock Text="Whiteboards" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
+                </Border>
+            </Button>
+            <Button Padding="0" Background="Transparent" BorderThickness="0" Click="MermaidChartsTile_Click">
+                <Border Background="{ThemeResource LayerFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                        BorderThickness="1" CornerRadius="8" Padding="16" MinWidth="160">
+                    <StackPanel Spacing="4">
+                        <TextBlock x:Name="MermaidChartCountText" Text="0" FontSize="28" FontWeight="SemiBold" />
+                        <TextBlock Text="Mermaid Charts" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
+                </Border>
+            </Button>
+        </StackPanel>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+            <HyperlinkButton Content="Manage Note Types" Click="ManageNoteTypes_Click" />
+        </StackPanel>
+    </Grid>
+</Page>

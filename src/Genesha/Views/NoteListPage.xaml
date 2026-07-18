@@ -1,0 +1,58 @@
+<Page
+    x:Class="Genesha.Views.NoteListPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:Genesha.ViewModels">
+    <Grid Padding="24" RowSpacing="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Notes" FontSize="24" FontWeight="SemiBold" />
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">
+            <AutoSuggestBox x:Name="SearchBox" Width="260" PlaceholderText="Search notes…"
+                             QueryIcon="Find" TextChanged="SearchBox_TextChanged" />
+            <ComboBox x:Name="TypeFilterCombo" Width="160" />
+            <Button Content="New Note" Click="NewNoteButton_Click" />
+        </StackPanel>
+
+        <Grid Grid.Row="2">
+            <TextBlock x:Name="EmptyStateText"
+                       Text="No notes yet. Create one to get started."
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                       Visibility="Collapsed" />
+            <ListView x:Name="NotesList"
+                      SelectionMode="None" IsItemClickEnabled="True"
+                      ItemClick="NotesList_ItemClick">
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:NoteListItemVm">
+                        <Grid Padding="12,10" ColumnSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Spacing="2">
+                                <TextBlock Text="{x:Bind Name}" FontWeight="SemiBold" />
+                                <TextBlock Text="{x:Bind UpdatedAtText}" FontSize="11"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </StackPanel>
+                            <Border Grid.Column="1" Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                    CornerRadius="4" Padding="8,2" VerticalAlignment="Center">
+                                <TextBlock Text="{x:Bind TypeName}" FontSize="11" />
+                            </Border>
+                            <Button Grid.Column="2" VerticalAlignment="Center" Background="Transparent" BorderThickness="0"
+                                    Tag="{x:Bind}" Click="NoteMenuButton_Click" ToolTipService.ToolTip="More options">
+                                <FontIcon Glyph="&#xE712;" FontSize="14" />
+                            </Button>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Grid>
+    </Grid>
+</Page>

@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Genesha Mermaid Chart</title>
+    <style>
+      html, body, #root { height: 100%; margin: 0; }
+      body { background: #1e1e1e; color: #e6e6e6; font-family: system-ui, sans-serif; }
+      body.dragging { user-select: none; }
+      #root { display: flex; height: 100%; }
+
+      #source-pane {
+        display: flex; flex-direction: column;
+        width: 50%; min-width: 160px; max-width: 85%;
+        box-sizing: border-box; overflow: hidden;
+      }
+      #source-pane.collapsed { display: none; }
+
+      #source-toolbar, #preview-toolbar {
+        display: flex; align-items: center; gap: 8px;
+        padding: 6px 10px; font-size: 12px;
+        background: #262626; border-bottom: 1px solid #3a3a3a;
+        flex: 0 0 auto;
+      }
+      .toolbar-label { color: #a0a0a0; }
+      .toolbar-spacer { flex: 1 1 auto; }
+      #source-toolbar button, #preview-toolbar button {
+        background: #333; color: #e6e6e6; border: 1px solid #4a4a4a; border-radius: 4px;
+        padding: 2px 8px; font-size: 12px; cursor: pointer;
+      }
+      #source-toolbar button:hover, #preview-toolbar button:hover { background: #3f3f3f; }
+      #zoom-reset-btn { min-width: 44px; }
+
+      #source {
+        flex: 1 1 auto; width: 100%; box-sizing: border-box; resize: none; border: none; outline: none;
+        background: #1e1e1e; color: #e6e6e6; font-family: "Cascadia Mono", Consolas, monospace; font-size: 13px;
+        padding: 12px;
+      }
+
+      #splitter { width: 6px; flex: 0 0 auto; cursor: col-resize; background: #2a2a2a; }
+      #splitter:hover, #splitter.dragging { background: #4a90d9; }
+      #splitter.collapsed { display: none; }
+
+      #preview-pane {
+        flex: 1 1 auto; display: flex; flex-direction: column; min-width: 0;
+        border-left: 1px solid #3a3a3a;
+      }
+      #expand-btn { display: none; }
+
+      #preview-viewport { flex: 1 1 auto; position: relative; overflow: hidden; cursor: grab; }
+      #preview-viewport.panning { cursor: grabbing; }
+
+      #preview {
+        position: absolute; top: 50%; left: 50%;
+        transform-origin: center center;
+      }
+      #preview svg { display: block; }
+      #preview svg .node, #preview svg .cluster { cursor: move; }
+      #preview svg .node.dragging, #preview svg .cluster.dragging { opacity: 0.85; }
+      #preview.error {
+        position: static; top: auto; left: auto; transform: none !important;
+        color: #ff8080; font-family: "Cascadia Mono", Consolas, monospace; white-space: pre-wrap; font-size: 12px;
+        padding: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <div id="source-pane">
+        <div id="source-toolbar">
+          <span class="toolbar-label">Mermaid Source</span>
+          <span class="toolbar-spacer"></span>
+          <button id="collapse-btn" title="Hide code view">Hide code</button>
+        </div>
+        <textarea id="source" spellcheck="false"></textarea>
+      </div>
+      <div id="splitter" title="Drag to resize"></div>
+      <div id="preview-pane">
+        <div id="preview-toolbar">
+          <button id="expand-btn" title="Show code view">Show code</button>
+          <span class="toolbar-spacer"></span>
+          <button id="reset-layout-btn" title="Undo manual node/subgraph dragging">Reset layout</button>
+          <button id="zoom-out-btn" title="Zoom out">−</button>
+          <button id="zoom-reset-btn" title="Reset zoom">100%</button>
+          <button id="zoom-in-btn" title="Zoom in">+</button>
+        </div>
+        <div id="preview-viewport">
+          <div id="preview"></div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
