@@ -28,6 +28,9 @@ use. It is free to use, free to fork, and contributions are welcome.
 - **Note Types**: a dedicated settings page to add, rename, or delete note types
 - **Whiteboards**: an infinite drawing canvas (shapes, connectors, freehand drawing, text, sticky
   notes) via an embedded tldraw canvas, in the same style as Miro or Canva
+- **Mermaid Diagrams**: a text based diagram editor (flowcharts, sequence diagrams, and everything
+  else Mermaid supports) with a live rendered preview. A whiteboard's shapes and connectors can
+  also be exported straight into a new Mermaid diagram with one click
 - **Dashboard**: a per workspace landing page showing note/whiteboard counts and quick links
 - **User Manual**: in-app help, always reachable from the nav pane footer
 
@@ -50,25 +53,27 @@ build, and none is planned since the UI framework itself is Windows specific.
 | Language/runtime | C#, .NET 8 (`net8.0-windows10.0.19041.0`) |
 | MVVM helpers | CommunityToolkit.Mvvm |
 | Data access | EF Core 8 + SQLite, one database per workspace |
-| Rich editors | WebView2 hosting two small Vite + React bundles: BlockNote for notes, tldraw for whiteboards, talking to native code via postMessage |
+| Rich editors | WebView2 hosting three small Vite + React/TS bundles: BlockNote for notes, tldraw for whiteboards, and a Mermaid renderer for diagrams, talking to native code via postMessage |
 
 Project layout:
 
 ```
 src/Genesha/
-  Models/                  Entities.cs (Note, NoteType, Whiteboard), WorkspaceRegistryEntry
+  Models/                  Entities.cs (Note, NoteType, Whiteboard, MermaidChart), WorkspaceRegistryEntry
   Data/                    WorkspaceDbContext, WorkspaceDbContextFactory, DatabaseInitializer
   Services/                WorkspaceRegistryService, CurrentWorkspaceService, NoteService,
-                           NoteTypeService, WhiteboardService, AppPaths
+                           NoteTypeService, WhiteboardService, MermaidChartService, AppPaths
   ViewModels/              Small row view models for list/settings pages
   Views/                   WorkspacePage, WorkspaceDashboardPage, NoteListPage,
                            NoteTypeSettingsPage, NoteEditorPage, WhiteboardListPage,
-                           WhiteboardEditorPage, UserManualPage
+                           WhiteboardEditorPage, MermaidChartListPage, MermaidChartEditorPage,
+                           UserManualPage
   wwwroot/                 Built output of the web/ editors (WebView2 serves from here)
   Assets/                  App icon and source artwork
 web/
   blocknote-editor/        Standalone Vite + React project wrapping BlockNote
   tldraw-editor/           Standalone Vite + React project wrapping tldraw
+  mermaid-viewer/          Standalone Vite + TS project wrapping Mermaid
 ```
 
 Everything is built with the `dotnet` CLI. No Visual Studio install is required.
@@ -85,13 +90,14 @@ cd genesha
 dotnet run --project "src\Genesha"
 ```
 
-If you change anything under `web\blocknote-editor` or `web\tldraw-editor`, rebuild the bundles
-before running, since the compiled output in `src\Genesha\wwwroot` is what WebView2 actually
-loads:
+If you change anything under `web\blocknote-editor`, `web\tldraw-editor`, or `web\mermaid-viewer`,
+rebuild the bundles before running, since the compiled output in `src\Genesha\wwwroot` is what
+WebView2 actually loads:
 
 ```
 cd web\blocknote-editor && npm install && npm run build
 cd ..\tldraw-editor && npm install && npm run build
+cd ..\mermaid-viewer && npm install && npm run build
 ```
 
 ## Building and publishing a release build
@@ -127,9 +133,10 @@ Everything is stored locally, never sent anywhere:
 
 - **Workspace registry** (the list of known workspaces): `%LOCALAPPDATA%\Genesha\workspaces.json`
 - **Per workspace data**, inside whatever folder you chose for that workspace:
-  - `.genesha\genesha.db`: SQLite database with note/whiteboard metadata
+  - `.genesha\genesha.db`: SQLite database with note/whiteboard/diagram metadata
   - `Notes\*.md`: one markdown file per note
   - `Whiteboards\*.json`: one tldraw snapshot per whiteboard
+  - `MermaidCharts\*.mmd`: one Mermaid source file per diagram
 
 A workspace folder is self contained and portable. Copy or move it anywhere, then open it again
 via Open Existing Folder.
@@ -153,6 +160,8 @@ Layout, in brief:
 - Note content itself: plain markdown files under `<workspace>\Notes\<guid>.md`, one file per row
   in the `Notes` table
 - To add a note by hand: write the `.md` file first, then insert a matching row into `Notes`
+- Mermaid diagrams: table `MermaidCharts` (Id, Name, RelativeFilePath, SourceWhiteboardName,
+  CreatedAt, UpdatedAt), source text stored under `<workspace>\MermaidCharts\<guid>.mmd`
 
 To make your own agent aware of this, drop something like the following into whatever file your
 tool reads for standing instructions (`CLAUDE.md`, `AGENTS.md`, `.cursorrules`, etc.):
@@ -162,11 +171,15 @@ Genesha is a local notes and whiteboard app. Workspaces are registered by name i
 %LOCALAPPDATA%\Genesha\workspaces.json, each pointing at a folder on disk. Each
 workspace has its own SQLite database at <workspace>\.genesha\genesha.db (table
 Notes: Id, Name, RelativeFilePath, CreatedAt, UpdatedAt, NoteTypeId) and stores note
-content as markdown files under <workspace>\Notes\<guid>.md. Read or write the
-database with any SQLite client (the `sqlite3` CLI, DB Browser for SQLite, or a
-couple lines of Python's built in sqlite3 module all work). Use short lived
-connections and transactions since the app itself may be running at the same time.
-To add a note: write the markdown file, then insert a matching row into Notes.
+content as markdown files under <workspace>\Notes\<guid>.md. The same database also
+has a MermaidCharts table (Id, Name, RelativeFilePath, SourceWhiteboardName,
+CreatedAt, UpdatedAt), with diagram source text stored under
+<workspace>\MermaidCharts\<guid>.mmd. Read or write the database with any SQLite
+client (the `sqlite3` CLI, DB Browser for SQLite, or a couple lines of Python's
+built in sqlite3 module all work). Use short lived connections and transactions
+since the app itself may be running at the same time. To add a note: write the
+markdown file, then insert a matching row into Notes. To add a diagram: write the
+.mmd file, then insert a matching row into MermaidCharts.
 ```
 
 ## Contributing
