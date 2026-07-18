@@ -9,6 +9,23 @@ folder on your own disk.
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Status](https://img.shields.io/badge/status-v1.0%20Beta-orange)
 
+## Screenshots
+
+| | |
+|---|---|
+| ![Workspaces](screenshots/workspaces.png) | ![Dashboard](screenshots/dashboard.png) |
+| Workspaces: each one is just a folder on disk | Per workspace dashboard: note, whiteboard, and diagram counts |
+
+| | |
+|---|---|
+| ![Note editor](screenshots/note-editor.png) | ![Whiteboard](screenshots/whiteboard.png) |
+| Notion style block editing with the slash command menu | Infinite whiteboard canvas |
+
+![Mermaid chart editor](screenshots/mermaid-chart.png)
+
+Mermaid diagram editor: edit the source on the left, see the rendered diagram update live on the
+right.
+
 ## Why this exists
 
 Notion and Miro are great, and both require an account and a network connection to a server you
